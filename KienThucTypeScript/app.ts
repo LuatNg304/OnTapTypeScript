@@ -115,6 +115,7 @@ let size = Sizes.S
 
 /**
  * Interface
+ * Gop tat ca interface cung ten thanh 1 thuoc tinh lon
  */
 
 // interface State {
@@ -144,6 +145,7 @@ let size = Sizes.S
 
 /**
  * Type
+ * Khong gop duoc nhu interface
  */
 
 // type State = {
@@ -188,15 +190,16 @@ class Person1 {
   }
 
   handle() {
+    
     let value = this.money
   }
 }
 
 const alex = new Person1('Alex', 27)
 
-alex.money = 200
+//alex.money = 200//chi co the doc khong the gan gia tri moi
 
-class Person {
+class Person2 {
   public name: string
   public age: number
 
@@ -206,6 +209,8 @@ class Person {
   }
 }
 
-class Person {
+class Person3 {
   constructor(public name: string, public age: number) {}
 }
+
+//class Person2 và Person3 la giong nhau
