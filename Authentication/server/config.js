@@ -1,8 +1,8 @@
 const config = {
   port: 4000,
   jwt_secret_key: 'nguyengialuat',
-  jwt_expire_access_token: 10, // 10 second
-  jwt_expire_refresh_token: '1h', // 1 hour
+  jwt_expire_access_token: 5, // 10 second
+  jwt_expire_refresh_token: 5, // 1 hour
   initialDatabase: {
     access_tokens: [],
     refresh_tokens: [],

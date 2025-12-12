@@ -4,12 +4,12 @@ class Http {
       baseURL: "http://localhost:4000",
       timeout: 10000,
     });
+    this.refreshTokenRequest = null;
     this.instance.interceptors.request.use(
       (config) => {
-        console.log(config);
-        const access_token = localStorage.getItem("access_token")
-        if(access_token){
-          config.headers.Authorization = `Bearer ${access_token}`
+        const access_token = localStorage.getItem("access_token");
+        if (access_token) {
+          config.headers.Authorization = `Bearer ${access_token}`;
         }
         return config;
       },
@@ -22,6 +22,25 @@ class Http {
         return config.data;
       },
       (error) => {
+        if (
+          error.response.status === 401 &&
+          error.response.data.name === "EXPIRED_ACCESS_TOKEN"
+        ) {
+          this.refreshTokenRequest = this.refreshTokenRequest
+            ? this.refreshTokenRequest
+            : refreshToken().finally(() => {
+                this.refreshTokenRequest = null;
+              });
+
+          return this.refreshTokenRequest
+            .then((access_token) => {
+              error.response.config.Authorization = access_token;
+              return this.instance(error.response.config);
+            })
+            .catch((error1) => {
+              throw error1;
+            });
+        }
         return Promise.reject(error);
       }
     );
@@ -34,26 +53,40 @@ class Http {
   }
 }
 const http = new Http();
-const fetchProfile =()=>{
+const fetchProfile = () => {
   http
-      .get("profile")
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-}
-const fetchProduct =()=>{
+    .get("profile")
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+const fetchProduct = () => {
   http
-      .get("products")
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-}
+    .get("products")
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+const refreshToken = async () => {
+  const refresh_token = localStorage.getItem("refresh_token");
+
+  try {
+    const res = await http.post("refresh-token", {
+      refresh_token,
+    });
+    localStorage.setItem("access_token", res.data.access_token);
+    return access_token;
+  } catch (error) {
+    localStorage.clear();
+    throw error.response;
+  }
+};
 
 document.getElementById("login-form").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -72,7 +105,9 @@ document.getElementById("login-form").addEventListener("submit", (event) => {
       console.log(error);
     });
 });
-document.getElementById("btn-get-profile").addEventListener("click", (event) => {
+document
+  .getElementById("btn-get-profile")
+  .addEventListener("click", (event) => {
     http
       .get("profile")
       .then((res) => {
@@ -82,9 +117,16 @@ document.getElementById("btn-get-profile").addEventListener("click", (event) => 
         console.log(error);
       });
   });
-document.getElementById("btn-get-products").addEventListener("click", (event) => {
-    fetchProduct()
+document
+  .getElementById("btn-get-products")
+  .addEventListener("click", (event) => {
+    fetchProduct();
   });
 document.getElementById("btn-get-both").addEventListener("click", (event) => {
-  fetchProduct(),fetchProfile()
+  fetchProduct(), fetchProfile();
 });
+document
+  .getElementById("btn-refresh-token")
+  .addEventListener("click", (event) => {
+    refreshToken();
+  });
